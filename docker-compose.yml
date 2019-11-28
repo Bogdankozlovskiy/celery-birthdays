@@ -1,0 +1,49 @@
+version: "3"
+
+volumes:
+  local_postgres_data: {}
+  local_postgres_data_backups: {}
+
+services:
+  calery_w:
+    build:
+      context: .
+      dockerfile: compose/celery/Dockerfile
+    container_name: cel_worker
+    depends_on:
+      - redis
+    volumes:
+      - ./src:/src
+    expose:
+      - "8000"
+    command : ["sh", "-c", "celery worker --app=birthdays --loglevel=info"]
+
+  calery_b:
+    build:
+      context: .
+      dockerfile: compose/celery/Dockerfile
+    container_name: cel_beat
+    depends_on:
+      - redis
+    volumes:
+      - ./src:/src
+    expose:
+      - "8000"
+    command : ["sh", "-c", "celery beat --app=birthdays"]
+
+#  db:
+#    build:
+#      context: .
+#      dockerfile: compose/postgres/Dockerfile
+#    container_name: postgresql
+#    env_file:
+#      - ./.envs/.postgres
+#    volumes:
+#      - local_postgres_data:/var/lib/postgresql/data
+#      - local_postgres_data_backups:/backups
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
