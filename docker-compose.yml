@@ -12,6 +12,7 @@ services:
     container_name: cel_worker
     depends_on:
       - redis
+      - db
     volumes:
       - ./src:/src
     expose:
@@ -25,25 +26,28 @@ services:
     container_name: cel_beat
     depends_on:
       - redis
+      - db
     volumes:
       - ./src:/src
     expose:
       - "8000"
     command : ["sh", "-c", "celery beat --app=birthdays"]
 
-#  db:
-#    build:
-#      context: .
-#      dockerfile: compose/postgres/Dockerfile
-#    container_name: postgresql
-#    env_file:
-#      - ./.envs/.postgres
-#    volumes:
-#      - local_postgres_data:/var/lib/postgresql/data
-#      - local_postgres_data_backups:/backups
+  db:
+    build:
+      context: .
+      dockerfile: compose/postgres/Dockerfile
+    container_name: postgresql
+    env_file:
+      - ./.envs/.postgres
+    volumes:
+      - local_postgres_data:/var/lib/postgresql/data
+      - local_postgres_data_backups:/backups
 
   redis:
-    image: redis:alpine
+    image: redis:3.2-alpine
     container_name: redis
     ports:
       - "6379:6379"
+    volumes:
+      - ./redis_data:/data
