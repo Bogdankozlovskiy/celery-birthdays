@@ -14,6 +14,7 @@ PORT = os.environ.get("DB_PORT")
 print('*' * 25)
 print(NAME, USER, PASSWORD, HOST, PORT)
 print('*' * 25)
+'''
 conn = connect(
 	host = HOST,
 	port = PORT,
@@ -21,7 +22,7 @@ conn = connect(
 	user = USER,
 	password = PASSWORD
 	)
-
+'''
 app = Celery(
     'birthdays', 
     broker = 'redis://redis:6379/0'
