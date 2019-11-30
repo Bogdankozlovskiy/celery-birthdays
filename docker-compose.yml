@@ -1,53 +1,49 @@
-version: "3"
+version: "3.1"
 
-volumes:
-  local_postgres_data: {}
-  local_postgres_data_backups: {}
 
 services:
   calery_w:
     build:
       context: .
       dockerfile: compose/celery/Dockerfile
-    container_name: cel_worker
+    container_name: cel_worker1
     depends_on:
       - redis
       - db
     volumes:
       - ./src:/src
-    expose:
-      - "8000"
-    command : ["sh", "-c", "celery worker --app=birthdays --loglevel=info"]
+    env_file:
+      - ./envs/db_keys
+    command : ["sh", "-c", "python3 test.py; celery worker --app=birthdays --loglevel=info"]
 
   calery_b:
     build:
       context: .
       dockerfile: compose/celery/Dockerfile
-    container_name: cel_beat
+    container_name: cel_beat1
     depends_on:
       - redis
-      - db
     volumes:
       - ./src:/src
-    expose:
-      - "8000"
     command : ["sh", "-c", "celery beat --app=birthdays"]
 
   db:
-    build:
-      context: .
-      dockerfile: compose/postgres/Dockerfile
-    container_name: postgresql
+    image: postgres
+    container_name: celery_db
     env_file:
-      - ./.envs/.postgres
+      - ./envs/db_keys
     volumes:
-      - local_postgres_data:/var/lib/postgresql/data
-      - local_postgres_data_backups:/backups
+      - /psql_db/postgres_data:/var/lib/postgresql/data
+      - /psql_db/postgres_data_backups:/backups
+
+  adminer:
+    image: adminer
+    container_name: admin_cel_db
+    ports:
+      - "8080:8080"
 
   redis:
     image: redis:3.2-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
+    container_name: cel_redis
     volumes:
       - ./redis_data:/data
